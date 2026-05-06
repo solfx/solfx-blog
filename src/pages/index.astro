@@ -1,84 +1,69 @@
 ---
-import { type CollectionEntry, getCollection } from "astro:content";
-import PostPreview from "@/components/blog/PostPreview.astro";
-import Note from "@/components/note/Note.astro";
-import SocialList from "@/components/SocialList.astro";
-import { getAllPosts } from "@/data/post";
-import PageLayout from "@/layouts/Base.astro";
-import { collectionDateSort } from "@/utils/date";
+import { Image } from 'astro:assets'
 
-// Posts
-const MAX_POSTS = 10;
-const allPosts = await getAllPosts();
-const allPostsByDate = allPosts.sort(collectionDateSort) as CollectionEntry<"post">[];
-const latestPosts = allPostsByDate.slice(0, MAX_POSTS);
+import { Quote } from 'astro-pure/advanced'
+import { PostPreview } from 'astro-pure/components/pages'
+import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
+import { Button, Icon, Label } from 'astro-pure/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import Section from '@/components/home/Section.astro'
+import config from '@/site-config'
 
-// Pinned Posts, set to a max of 3;
-const MAX_PINNED_POSTS = 3;
-const pinnedPosts = allPostsByDate
-	.values()
-	.filter((p) => p.data.pinned)
-	.take(MAX_PINNED_POSTS)
-	.toArray();
+const MAX_POSTS = 10
+const allPosts = await getBlogCollection()
+const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
 
-// Notes, set to a max of 5
-const MAX_NOTES = 5;
-const allNotes = await getCollection("note");
-const latestNotes = allNotes
-	.sort(collectionDateSort)
-	.slice(0, MAX_NOTES) as CollectionEntry<"note">[];
+const imagePath = config.logo.src
+const images = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/*.{jpeg,jpg,png,gif,avif,webp}'
+)
+if (!images[imagePath])
+  throw new Error(
+    `"${imagePath}" does not exist in glob: "src/assets/*.{jpeg,jpg,png,gif,avif,webp}"`
+  )
 ---
 
-<PageLayout meta={{ title: "Home" }}>
-	<section>
-		<h1 class="title mb-12">Hello World!</h1>
-		<p class="mb-4">
-			Hi, I’m a theme for Astro, a simple starter that you can use to create your website or blog.
-			If you want to know more about how you can customise me, add more posts, and make it your own,
-			click on the GitHub icon link below and it will take you to my repo.
-		</p>
-		<SocialList />
-	</section>
-	{
-		pinnedPosts.length > 0 && (
-			<section class="mt-16">
-				<h2 class="title mb-6 text-xl">Pinned Posts</h2>
-				<ul class="space-y-4" role="list">
-					{pinnedPosts.map((p) => (
-						<li class="grid gap-1 sm:grid-cols-[auto_1fr]">
-							<PostPreview post={p} />
-						</li>
-					))}
-				</ul>
-			</section>
-		)
-	}
-	<section class="mt-16">
-		<h2 class="title text-accent mb-6 text-xl"><a href="/posts/">Posts</a></h2>
-		<ul class="space-y-4" role="list">
-			{
-				latestPosts.map((p) => (
-					<li class="grid gap-1 sm:grid-cols-[auto_1fr]">
-						<PostPreview post={p} />
-					</li>
-				))
-			}
-		</ul>
-	</section>
-	{
-		latestNotes.length > 0 && (
-			<section class="mt-16">
-				<h2 class="title text-accent mb-6 text-xl">
-					<a href="/notes/">Notes</a>
-				</h2>
-				<ul class="space-y-6" role="list">
-					{latestNotes.map((note) => (
-						<li>
-							<Note note={note} as="h3" isPreview />
-						</li>
-					))}
-				</ul>
-			</section>
-		)
-	}
+<PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
+  <main class='flex w-full flex-col items-center'>
+    <section class='animate mb-10 flex flex-col items-center gap-y-7' id='content-header'>
+      <Image
+        src={images[imagePath]()}
+        alt={config.logo.alt || 'Profile'}
+        class='h-28 w-auto rounded-full border p-1'
+        loading='eager'
+        fetchpriority='high'
+      />
+
+      <div class='flex flex-col items-center gap-y-4'>
+        <h1 class='text-3xl font-medium'>{config.title}</h1>
+        <p class='text-muted-foreground'>{config.description}</p>
+        <div class='flex flex-wrap justify-center gap-x-7 gap-y-3'>
+          <Label title='GitHub' as='a' href='https://github.com/solfx' target='_blank'>
+            <Icon name='github' class='size-5' slot='icon' />
+          </Label>
+          <Label title='X' as='a' href='https://x.com/solfx_2030' target='_blank'>
+            <Icon name='x' class='size-5' slot='icon' />
+          </Label>
+        </div>
+      </div>
+    </section>
+
+    <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6'>
+      {
+        allPostsByDate.length > 0 && (
+          <Section title='最新文章'>
+            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
+              {allPostsByDate.map((p) => (
+                <li class='flex flex-col gap-x-2 sm:flex-row'>
+                  <PostPreview post={p} />
+                </li>
+              ))}
+            </ul>
+            <Button title='更多文章' class='w-fit self-end' href='/blog' variant='ahead' />
+          </Section>
+        )
+      }
+    </div>
+    <Quote class='mt-12' />
+  </main>
 </PageLayout>

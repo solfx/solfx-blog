@@ -1,86 +1,98 @@
 ---
-import { WEBMENTION_PINGBACK, WEBMENTION_URL } from "astro:env/client";
-import { siteConfig } from "@/site.config";
-import type { SiteMeta } from "@/types";
-import "@/styles/global.css";
+import { Font } from 'astro:assets'
 
-type Props = SiteMeta;
+import { prod } from 'astro-pure/server'
+import type { SiteMeta } from 'astro-pure/types'
+import config from 'virtual:config'
 
-const { articleDate, description, ogImage, title } = Astro.props;
+type Props = SiteMeta
 
-const titleSeparator = "•";
-const siteTitle = `${title} ${titleSeparator} ${siteConfig.title}`;
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-const socialImageURL = new URL(ogImage ? ogImage : "/social-card.png", Astro.url).href;
+const { articleDate, description, ogImage, title } = Astro.props
+
+const siteTitle = `${title} ${config.titleDelimiter} ${config.title}`
+const canonicalURL = new URL(Astro.url.pathname, Astro.site)
+const socialImageURL = new URL(ogImage ? ogImage : config.socialCard, Astro.url).href
 ---
 
-<meta charset="utf-8" />
-<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+<meta charset='utf-8' />
+<meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no, viewport-fit=cover' name='viewport' />
+<meta content='IE=edge' http-equiv='X-UA-Compatible' />
 <title>{siteTitle}</title>
 
-{/* Icons */}
-<link href="/icon.svg" rel="icon" type="image/svg+xml" />
-{
-	import.meta.env.PROD && (
-		<>
-			{/* Favicon & Apple Icon */}
-			<link rel="icon" href="/favicon-32x32.png" type="image/png" />
-			<link href="/icons/apple-touch-icon.png" rel="apple-touch-icon" />
-			{/* Manifest */}
-			<link href="/manifest.webmanifest" rel="manifest" />
-		</>
-	)
-}
+{/* Icons / Favicon */}
+<link rel='icon' type={config.favicon.type} href={config.favicon.href} />
+<link rel='shortcut icon' type={config.favicon.type} href={config.favicon.href} />
+<link rel='icon' type='image/png' sizes='32x32' href='/favicon/favicon-32x32.png' />
+<link rel='icon' type='image/png' sizes='16x16' href='/favicon/favicon-16x16.png' />
+<link rel='apple-touch-icon' sizes='180x180' href='/favicon/apple-touch-icon.png' />
+<link rel='manifest' href='/favicon/site.webmanifest' />
+
+{/* Font preloads */}
+<Font cssVariable='--font-satoshi' preload={[{ subset: 'latin', style: 'normal' }]} />
+<style>
+  body {
+    font-family: var(--font-satoshi);
+  }
+</style>
 
 {/* Canonical URL */}
-<link href={canonicalURL} rel="canonical" />
+<link rel='canonical' href={canonicalURL} />
 
 {/* Primary Meta Tags */}
-<meta content={siteTitle} name="title" />
-<meta content={description} name="description" />
-<meta content={siteConfig.author} name="author" />
+<meta content={siteTitle} name='title' />
+<meta content={description} name='description' />
+<meta content={config.author} name='author' />
+
+{/* Theme Color */}
+{/* <meta content='' name='theme-color' /> */}
+<meta name='color-scheme' content='light dark' />
 
 {/* Open Graph / Facebook */}
-<meta content={articleDate ? "article" : "website"} property="og:type" />
-<meta content={title} property="og:title" />
-<meta content={description} property="og:description" />
-<meta content={canonicalURL} property="og:url" />
-<meta content={siteConfig.title} property="og:site_name" />
-<meta content={siteConfig.ogLocale} property="og:locale" />
-<meta content={socialImageURL} property="og:image" />
-<meta content="1200" property="og:image:width" />
-<meta content="630" property="og:image:height" />
+<meta content={articleDate ? 'article' : 'website'} property='og:type' />
+<meta content={title} property='og:title' />
+<meta content={description} property='og:description' />
+<meta content={canonicalURL} property='og:url' />
+<meta content={config.title} property='og:site_name' />
+<meta content={config.locale.attrs} property='og:locale' />
+<meta content={socialImageURL} property='og:image' />
+<meta content='1200' property='og:image:width' />
+<meta content='630' property='og:image:height' />
 {
-	articleDate && (
-		<>
-			<meta content={siteConfig.author} property="article:author" />
-			<meta content={articleDate} property="article:published_time" />
-		</>
-	)
+  articleDate && (
+    <>
+      <meta content={config.author} property='article:author' />
+      <meta content={articleDate} property='article:published_time' />
+    </>
+  )
 }
 
 {/* Twitter */}
-<meta content="summary_large_image" property="twitter:card" />
-<meta content={canonicalURL} property="twitter:url" />
-<meta content={title} property="twitter:title" />
-<meta content={description} property="twitter:description" />
-<meta content={socialImageURL} property="twitter:image" />
+<meta content='summary_large_image' property='twitter:card' />
+<meta content={canonicalURL} property='twitter:url' />
+<meta content={title} property='twitter:title' />
+<meta content={description} property='twitter:description' />
+<meta content={socialImageURL} property='twitter:image' />
 
 {/* Sitemap */}
-<link href="/sitemap-index.xml" rel="sitemap" />
+<link href='/sitemap-index.xml' rel='sitemap' />
 
 {/* RSS auto-discovery */}
-<link href="/rss.xml" title="Blog" rel="alternate" type="application/rss+xml" />
-<link href="/notes/rss.xml" title="Notes" rel="alternate" type="application/rss+xml" />
+<link
+  rel='alternate'
+  type='application/rss+xml'
+  title={config.title}
+  href={`${Astro.site}rss.xml`}
+/>
 
-{/* Webmentions */}
+<meta content={Astro.generator} name='generator' />
+
 {
-	WEBMENTION_URL && (
-		<>
-			<link href={WEBMENTION_URL} rel="webmention" />
-			{WEBMENTION_PINGBACK && <link href={WEBMENTION_PINGBACK} rel="pingback" />}
-		</>
-	)
+  /* User script*/
+  prod && (
+    <script>
+      console.log( '%c Astro Theme Pure %c https://github.com/cworld1/astro-theme-pure/',
+      'color:#fff;background:linear-gradient(90deg,#448bff,#44e9ff);padding:5px 0;',
+      'color:#000;background:linear-gradient(90deg,#44e9ff,#ffffff);padding:5px 10px 5px 0px;' )
+    </script>
+  )
 }
-
-<meta content={Astro.generator} name="generator" />

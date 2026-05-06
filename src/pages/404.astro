@@ -1,13 +1,18 @@
 ---
-import PageLayout from "@/layouts/Base.astro";
+import { Button } from 'astro-pure/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
 
 const meta = {
-	description: "Oops! It looks like this page is lost in space!",
-	title: "Oops! You found a missing page!",
-};
+  description: 'Not found',
+  title: '404'
+}
 ---
 
-<PageLayout meta={meta}>
-	<h1 class="title mb-12">404 | Oops something went wrong</h1>
-	<p class="mb-8">Please use the navigation to find your way back</p>
+<PageLayout {meta}>
+  <div class='px-4 py-10 text-center sm:px-6 lg:px-8'>
+    <h1 class='block text-7xl font-bold sm:text-9xl'>404</h1>
+    <p class='mt-3 text-muted-foreground'>Oops, something went wrong.</p>
+    <p class='text-lg'>Sorry, we couldn't find your page.</p>
+    <Button title='Back to home' href='/' variant='ahead' class='mt-5' />
+  </div>
 </PageLayout>

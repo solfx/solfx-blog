@@ -1,118 +1,142 @@
-import fs from "node:fs";
-// Rehype plugins
-import { rehypeHeadingIds } from "@astrojs/markdown-remark";
-import mdx from "@astrojs/mdx";
-import sitemap from "@astrojs/sitemap";
-import tailwind from "@tailwindcss/vite";
-import { defineConfig, envField } from "astro/config";
-import expressiveCode from "astro-expressive-code";
-import icon from "astro-icon";
-import robotsTxt from "astro-robots-txt";
-import webmanifest from "astro-webmanifest";
-import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import rehypeExternalLinks from "rehype-external-links";
-import rehypeUnwrapImages from "rehype-unwrap-images";
-// Remark plugins
-import remarkDirective from "remark-directive"; /* Handle ::: directives as nodes */
-import { remarkAdmonitions } from "./src/plugins/remark-admonitions"; /* Add admonitions */
-import { remarkGithubCard } from "./src/plugins/remark-github-card";
-import { remarkReadingTime } from "./src/plugins/remark-reading-time";
-import { expressiveCodeOptions, siteConfig } from "./src/site.config";
+import { rehypeHeadingIds } from '@astrojs/markdown-remark'
+import AstroPureIntegration from 'astro-pure'
+import { defineConfig, fontProviders } from 'astro/config'
+import rehypeKatex from 'rehype-katex'
+import remarkMath from 'remark-math'
+
+// Local integrations
+import rehypeAutolinkHeadings from './src/plugins/rehype-auto-link-headings.ts'
+// Shiki
+import {
+  addCollapse,
+  addCopyButton,
+  addLanguage,
+  addTitle,
+  updateStyle
+} from './src/plugins/shiki-custom-transformers.ts'
+import {
+  transformerNotationDiff,
+  transformerNotationHighlight,
+  transformerRemoveNotationEscape
+} from './src/plugins/shiki-official/transformers.ts'
+import config from './src/site.config.ts'
 
 // https://astro.build/config
 export default defineConfig({
-	site: siteConfig.url,
-	image: {
-		domains: ["webmention.io"],
-	},
-	integrations: [
-		expressiveCode(expressiveCodeOptions),
-		icon(),
-		sitemap(),
-		mdx(),
-		robotsTxt(),
-		webmanifest({
-			// See: https://github.com/alextim/astro-lib/blob/main/packages/astro-webmanifest/README.md
-			name: siteConfig.title,
-			short_name: "Astro_Cactus", // optional
-			description: siteConfig.description,
-			lang: siteConfig.lang,
-			icon: "public/icon.svg", // the source for generating favicon & icons
-			icons: [
-				{
-					src: "icons/apple-touch-icon.png", // used in src/components/BaseHead.astro L:26
-					sizes: "180x180",
-					type: "image/png",
-				},
-				{
-					src: "icons/icon-192.png",
-					sizes: "192x192",
-					type: "image/png",
-				},
-				{
-					src: "icons/icon-512.png",
-					sizes: "512x512",
-					type: "image/png",
-				},
-			],
-			start_url: "/",
-			background_color: "#1d1f21",
-			theme_color: "#2bbc8a",
-			display: "standalone",
-			config: {
-				insertFaviconLinks: false,
-				insertThemeColorMeta: false,
-				insertManifestLink: false,
-			},
-		}),
-	],
-	markdown: {
-		rehypePlugins: [
-			rehypeHeadingIds,
-			[rehypeAutolinkHeadings, { behavior: "wrap", properties: { className: ["not-prose"] } }],
-			[
-				rehypeExternalLinks,
-				{
-					rel: ["noreferrer", "noopener"],
-					target: "_blank",
-				},
-			],
-			rehypeUnwrapImages,
-		],
-		remarkPlugins: [remarkReadingTime, remarkDirective, remarkGithubCard, remarkAdmonitions],
-		remarkRehype: {
-			footnoteLabelProperties: {
-				className: [""],
-			},
-		},
-	},
-	vite: {
-		optimizeDeps: {
-			exclude: ["@resvg/resvg-js"],
-		},
-		plugins: [tailwind(), rawFonts([".ttf", ".woff"])],
-	},
-	env: {
-		schema: {
-			WEBMENTION_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
-			WEBMENTION_URL: envField.string({ context: "client", access: "public", optional: true }),
-			WEBMENTION_PINGBACK: envField.string({ context: "client", access: "public", optional: true }),
-		},
-	},
-});
+  // [Basic]
+  site: 'https://solfx.dev',
+  // Deploy to a sub path
+  // https://astro-pure.js.org/docs/setup/deployment#platform-with-base-path
+  // base: '/astro-pure/',
+  trailingSlash: 'never',
+  // root: './my-project-directory',
+  server: { host: true },
+  // https://docs.astro.build/en/guides/prefetch/
+  prefetch: {
+    // prefetchAll: true,
+    defaultStrategy: 'viewport'
+  },
 
-function rawFonts(ext: string[]) {
-	return {
-		name: "vite-plugin-raw-fonts",
-		// @ts-expect-error:next-line
-		transform(_, id) {
-			if (ext.some((e) => id.endsWith(e))) {
-				const buffer = fs.readFileSync(id);
-				return {
-					code: `export default ${JSON.stringify(buffer)}`,
-					map: null,
-				};
-			}
-		},
-	};
-}
+  // [Adapter]
+  // Cloudflare Pages: default static output, no adapter needed.
+  output: 'static',
+
+  // [Assets]
+  image: {
+    responsiveStyles: true,
+    service: { entrypoint: 'astro/assets/services/sharp' },
+    // domains: ['ghchart.rshah.org'],
+    remotePatterns: [{ protocol: 'https' }]
+  },
+  // Enable font preloading and optimization
+  // https://docs.astro.build/en/guides/fonts/
+  fonts: [
+    {
+      provider: fontProviders.fontshare(),
+      name: 'Satoshi',
+      cssVariable: '--font-satoshi',
+      // Default included:
+      // weights: [400],
+      // styles: ["normal", "italics"],
+      // subsets: ["cyrillic-ext", "cyrillic", "greek-ext", "greek", "vietnamese", "latin-ext", "latin"],
+      // fallbacks: ["sans-serif"],
+      styles: ['normal', 'italic'],
+      weights: [400, 500],
+      subsets: ['latin']
+    }
+  ],
+
+  // [Markdown]
+  markdown: {
+    remarkPlugins: [remarkMath],
+    rehypePlugins: [
+      [rehypeKatex, {}],
+      rehypeHeadingIds,
+      [
+        rehypeAutolinkHeadings,
+        {
+          behavior: 'append',
+          properties: { className: ['anchor'] },
+          content: { type: 'text', value: '#' }
+        }
+      ]
+    ],
+    // https://docs.astro.build/en/guides/syntax-highlighting/
+    shikiConfig: {
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark'
+      },
+      transformers: [
+        // Two copies of @shikijs/types (one under node_modules
+        // and another nested under @astrojs/markdown-remark → shiki).
+        // Official transformers
+        // @ts-ignore this happens due to multiple versions of shiki types
+        transformerNotationDiff(),
+        // @ts-ignore this happens due to multiple versions of shiki types
+        transformerNotationHighlight(),
+        // @ts-ignore this happens due to multiple versions of shiki types
+        transformerRemoveNotationEscape(),
+        // Custom transformers
+        // @ts-ignore this happens due to multiple versions of shiki types
+        updateStyle(),
+        // @ts-ignore this happens due to multiple versions of shiki types
+        addTitle(),
+        // @ts-ignore this happens due to multiple versions of shiki types
+        addLanguage(),
+        // @ts-ignore this happens due to multiple versions of shiki types
+        addCopyButton(2000), // timeout in ms
+        // @ts-ignore this happens due to multiple versions of shiki types
+        addCollapse(15) // max lines that needs to collapse
+      ]
+    }
+  },
+
+  // [Integrations]
+  integrations: [
+    // astro-pure will automatically add sitemap, mdx & unocss
+    // sitemap(),
+    // mdx(),
+    AstroPureIntegration(config)
+  ],
+
+  // [Experimental]
+  experimental: {
+    // Allow compatible editors to support intellisense features for content collection entries
+    // https://docs.astro.build/en/reference/experimental-flags/content-intellisense/
+    contentIntellisense: true,
+    // Enable SVGO optimization for SVG assets
+    // https://docs.astro.build/en/reference/experimental-flags/svg-optimization/
+    svgo: true,
+    // Enables pre-rendering your prefetched pages on the client in supported browsers.
+    // https://docs.astro.build/en/reference/experimental-flags/client-prerender/
+    clientPrerender: true,
+    // Enables using the new Rust-based compiler for Astro files.
+    // https://docs.astro.build/en/reference/experimental-flags/rust-compiler/
+    rustCompiler: false,
+    // https://docs.astro.build/en/reference/experimental-flags/queued-rendering/
+    queuedRendering: {
+      enabled: true
+    }
+  }
+})

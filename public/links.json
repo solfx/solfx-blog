@@ -1,0 +1,19 @@
+{
+  "friends": [
+    {
+      "id_name": "cf-links",
+      "desc": "Common links",
+      "link_list": []
+    },
+    {
+      "id_name": "inactive-links",
+      "desc": "Inactive or rule-breaking links",
+      "link_list": []
+    },
+    {
+      "id_name": "special-links",
+      "desc": "Other special links",
+      "link_list": []
+    }
+  ]
+}

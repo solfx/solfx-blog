@@ -1,81 +1,167 @@
-import type { AstroExpressiveCodeOptions } from "astro-expressive-code";
-import type { SiteConfig } from "@/types";
+import type { CardListData, Config, IntegrationUserConfig, ThemeUserConfig } from 'astro-pure/types'
 
-export const siteConfig: SiteConfig = {
-	// ! Please remember to replace the following site property with your own domain, used in astro.config.ts
-	url: "https://astro-cactus.chriswilliams.dev/",
-	/*
-		- Used to construct the meta title property found in src/components/BaseHead.astro L:11
-		- The webmanifest name found in astro.config.ts L:42
-		- The link value found in src/components/layout/Header.astro L:35
-		- In the footer found in src/components/layout/Footer.astro L:12
-	*/
-	title: "Astro Cactus",
-	// Used as both a meta property (src/components/BaseHead.astro L:31 + L:49) & the generated satori png (src/pages/og-image/[slug].png.ts)
-	author: "Chris Williams",
-	// Used as the default description meta property and webmanifest description
-	description: "An opinionated starter theme for Astro",
-	// HTML lang property, found in src/layouts/Base.astro L:18 & astro.config.ts L:48
-	lang: "en-GB",
-	// Meta property, found in src/components/BaseHead.astro L:42
-	ogLocale: "en_GB",
-	// Date.prototype.toLocaleDateString() parameters, found in src/utils/date.ts.
-	date: {
-		locale: "en-GB",
-		options: {
-			day: "numeric",
-			month: "short",
-			year: "numeric",
-		},
-	},
-};
+export const theme: ThemeUserConfig = {
+  // [Basic]
+  /** Title for your website. Will be used in metadata and as browser tab title. */
+  title: 'SolfX 学习日志',
+  /** Will be used in index page & copyright declaration */
+  author: 'SolfX',
+  /** Description metadata for your website. Can be used in page metadata. */
+  description: '千里之行始于足下',
+  /** The default favicon for your site which should be a path to an image in the `public/` directory. */
+  favicon: '/favicon/favicon.ico',
+  /** The default social card image for your site which should be a path to an image in the `public/` directory. */
+  socialCard: '/images/social-card.png',
+  /** Specify the default language for this site. */
+  locale: {
+    lang: 'zh-CN',
+    attrs: 'zh_CN',
+    // Date locale
+    dateLocale: 'zh-CN',
+    dateOptions: {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    }
+  },
+  /** Set a logo image to show in the homepage. */
+  logo: {
+    src: '/src/assets/avatar.png',
+    alt: 'Avatar'
+  },
 
-// Used to generate links in both the Header & Footer.
-export const menuLinks: { path: string; title: string }[] = [
-	{
-		path: "/",
-		title: "Home",
-	},
-	{
-		path: "/about/",
-		title: "About",
-	},
-	{
-		path: "/posts/",
-		title: "Blog",
-	},
-	{
-		path: "/notes/",
-		title: "Notes",
-	},
-];
+  titleDelimiter: '•',
+  prerender: true, // pagefind search is not supported with prerendering disabled
+  npmCDN: 'https://cdn.jsdelivr.net/npm',
 
-// https://expressive-code.com/reference/configuration/
-export const expressiveCodeOptions: AstroExpressiveCodeOptions = {
-	styleOverrides: {
-		borderRadius: "4px",
-		codeFontFamily:
-			'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-		codeFontSize: "0.875rem",
-		codeLineHeight: "1.7142857rem",
-		codePaddingInline: "1rem",
-		frames: {
-			frameBoxShadowCssValue: "none",
-		},
-		uiLineHeight: "inherit",
-	},
-	themeCssSelector(theme, { styleVariants }) {
-		// If one dark and one light theme are available
-		// generate theme CSS selectors compatible with cactus-theme dark mode switch
-		if (styleVariants.length >= 2) {
-			const baseTheme = styleVariants[0]?.theme;
-			const altTheme = styleVariants.find((v) => v.theme.type !== baseTheme?.type)?.theme;
-			if (theme === baseTheme || theme === altTheme) return `[data-theme='${theme.type}']`;
-		}
-		// return default selector
-		return `[data-theme="${theme.name}"]`;
-	},
-	// One dark, one light theme => https://expressive-code.com/guides/themes/#available-themes
-	themes: ["dracula", "github-light"],
-	useThemedScrollbars: false,
-};
+  // Still in test
+  head: [],
+  customCss: [],
+
+  /** Configure the header of your site. */
+  header: {
+    menu: [
+      { title: '首页', link: '/' },
+      { title: '文章', link: '/blog' },
+      { title: '标签', link: '/tags' },
+      { title: '关于', link: '/about' }
+    ]
+  },
+
+  /** Configure the footer of your site. */
+  footer: {
+    // Year format
+    year: `© ${new Date().getFullYear()}`,
+    links: [],
+    /** Enable displaying a "Astro & Pure theme powered" link in your site's footer. */
+    credits: false,
+    /** Optional details about the social media accounts for this site. */
+    social: [
+      { icon: 'github', label: 'GitHub', href: 'https://github.com/solfx' },
+      { icon: 'x', label: 'X', href: 'https://x.com/solfx_2030' },
+      { icon: 'rss', label: 'RSS', href: '/rss.xml' }
+    ]
+  },
+
+  // [Content]
+  content: {
+    /** External links configuration */
+    externalLinks: {
+      content: ' ↗',
+      /** Properties for the external links element */
+      properties: { style: 'user-select:none' }
+    },
+    /** Blog page size for pagination (optional) */
+    blogPageSize: 8,
+    /** Share buttons to show */
+    // Currently support weibo, x, bluesky
+    share: ['weibo', 'x', 'bluesky']
+    /** Enable image captions (default false) */
+    // imageCaption: true
+  }
+}
+
+export const integ: IntegrationUserConfig = {
+  // [Links]
+  // https://astro-pure.js.org/docs/integrations/links
+  links: {
+    // Friend logbook
+    logbook: [],
+    // Yourself link info
+    applyTip: [
+      { name: 'Name', val: theme.title },
+      { name: 'Desc', val: theme.description || 'Null' },
+      { name: 'Link', val: 'https://solfx.dev/' },
+      { name: 'Avatar', val: 'https://solfx.dev/favicon/favicon.ico' }
+    ],
+    // Cache avatars in `public/avatars/` to improve user experience.
+    cacheAvatar: false
+  },
+  // [Search]
+  pagefind: true,
+  // Add a random quote to the footer (default on homepage footer)
+  // [Quote]
+  quote: {
+    server: 'https://dummyjson.com/quotes/random',
+    target: `(data) => (data.quote.length > 80 ? \`\${data.quote.slice(0, 80)}...\` : data.quote || 'Error')`
+  },
+  // [Typography]
+  // https://unocss.dev/presets/typography
+  typography: {
+    class: 'prose text-base',
+    // The style of blockquote font `normal` / `italic` (default to italic in typography)
+    blockquoteStyle: 'italic',
+    // The style of inline code block `code` / `modern` (default to code in typography)
+    inlineCodeBlockStyle: 'modern'
+  },
+  // [Lightbox]
+  // A lightbox library that can add zoom effect
+  mediumZoom: {
+    enable: true, // disable it will not load the whole library
+    selector: '.prose .zoomable',
+    options: {
+      className: 'zoomable'
+    }
+  },
+  // Comment system — disabled until Giscus is wired up in SOL-27
+  waline: {
+    enable: false,
+    server: '',
+    showMeta: false,
+    emoji: ['bmoji', 'weibo'],
+    additionalConfigs: {
+      pageview: false,
+      comment: false,
+      locale: {
+        reaction0: 'Like',
+        placeholder: ''
+      },
+      imageUploader: false
+    }
+  }
+}
+
+export const terms: CardListData = {
+  title: 'Terms content',
+  list: [
+    {
+      title: 'Privacy Policy',
+      link: '/terms/privacy-policy'
+    },
+    {
+      title: 'Terms and Conditions',
+      link: '/terms/terms-and-conditions'
+    },
+    {
+      title: 'Copyright',
+      link: '/terms/copyright'
+    },
+    {
+      title: 'Disclaimer',
+      link: '/terms/disclaimer'
+    }
+  ]
+}
+
+const config = { ...theme, integ } as Config
+export default config
