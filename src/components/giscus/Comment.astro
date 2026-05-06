@@ -1,0 +1,56 @@
+---
+import { cn } from 'astro-pure/utils'
+
+const { class: className } = Astro.props
+---
+
+<div id='giscus-container' class={cn('not-prose', className)}>
+  <script
+    src='https://giscus.app/client.js'
+    data-repo='solfx/solfx-blog'
+    data-repo-id='R_kgDOSVo97g'
+    data-category='Announcements'
+    data-category-id='DIC_kwDOSVo97s4C8cAZ'
+    data-mapping='pathname'
+    data-strict='0'
+    data-reactions-enabled='1'
+    data-emit-metadata='0'
+    data-input-position='bottom'
+    data-theme='preferred_color_scheme'
+    data-lang='zh-CN'
+    crossorigin='anonymous'
+    async
+  ></script>
+</div>
+
+<script>
+  function getGiscusTheme() {
+    return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+  }
+
+  function sendGiscusTheme(theme: string) {
+    const iframe = document.querySelector<HTMLIFrameElement>('iframe.giscus-frame')
+    if (iframe?.contentWindow) {
+      iframe.contentWindow.postMessage(
+        { giscus: { setConfig: { theme } } },
+        'https://giscus.app'
+      )
+    }
+  }
+
+  // Sync theme whenever documentElement class changes (dark toggle)
+  const observer = new MutationObserver(() => {
+    sendGiscusTheme(getGiscusTheme())
+  })
+
+  function initGiscusObserver() {
+    observer.disconnect()
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+  }
+
+  document.addEventListener('astro:page-load', initGiscusObserver)
+  initGiscusObserver()
+</script>

@@ -9,7 +9,8 @@ import { MediumZoom } from 'astro-pure/advanced'
 import { ArticleBottom, Copyright, Hero, TOC } from 'astro-pure/components/pages'
 import config from 'virtual:config'
 import PageLayout from '@/layouts/ContentLayout.astro'
-import { Comment, PageInfo } from '@/components/waline'
+import { Comment } from '@/components/giscus'
+import { PageInfo } from '@/components/waline'
 
 interface Props {
   post: CollectionEntry<'blog'>
