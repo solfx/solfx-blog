@@ -74,6 +74,56 @@ pnpm build   # 输出到 dist/
 
 ---
 
+## 给 Agent 的发文清单
+
+被分派「写一篇文章」类任务的 Multica agent，按下面流程做就够。
+
+**1. 拿到仓库**
+
+仓库地址写死：`https://github.com/solfx/solfx-blog`，公开仓库，无需 token。
+
+```bash
+multica repo checkout https://github.com/solfx/solfx-blog   # 项目资源已挂时
+git clone https://github.com/solfx/solfx-blog.git           # 兜底
+```
+
+> 如果 `multica repo checkout` 报 `repo is not configured for this workspace`，说明 Multica 项目 `solfx-blog` 还没挂这个 `github_repo` 资源；直接走 `git clone` 即可，并提醒维护者补挂资源。
+
+**2. 写文章**
+
+按上面「发一篇文章（两步）」那节，把文件放到 `src/content/blog/<slug>.md`，frontmatter 至少包含 `title` / `description` / `publishDate` / `tags`。`description` 控制在 160 字以内，`title` 控制在 60 字以内（content collection schema 强校验）。
+
+**3. commit 用 GitHub no-reply 邮箱**
+
+仓库公开，commit 邮箱会永久公开。统一用 no-reply 邮箱，**不要**改全局 git config：
+
+```bash
+git -c user.email='20767341+solfx@users.noreply.github.com' \
+    -c user.name='solfx' \
+    commit -m "post: <slug> — 一句话主题"
+```
+
+**4. push main，等 Cloudflare Pages 自动构建**
+
+```bash
+git push origin main
+```
+
+约 1–2 分钟后部署到 `solfx.dev`。
+
+**5. 验证三件套**
+
+```bash
+SLUG=<slug>
+curl -sIL "https://solfx.dev/blog/$SLUG" | grep -E '^HTTP|^location'   # 308 → 200
+curl -s   "https://solfx.dev/rss.xml"        | grep -c "$SLUG"          # 1
+curl -s   "https://solfx.dev/sitemap-0.xml"  | grep -c "$SLUG"          # 1
+```
+
+三项都过才算「发布成功」。回到触发任务的 Multica issue 评论里贴上线 URL + commit hash + 验证结果，结束。
+
+---
+
 ## Cloudflare Web Analytics
 
 **启用步骤（首次，在 CF Dashboard 操作一次）：**
